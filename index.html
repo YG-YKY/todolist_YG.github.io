@@ -1,0 +1,208 @@
+<html>
+  <head>
+    <title>To Do List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="todo.css">
+  </head>
+  <body>
+    <!-- create default display everytime open to do list.
+    The default display contains input for the content of things to do, associated date and add button -->
+    <div class="inp">
+      <input id="todo-title" type="text" placeholder="Content"/>
+      <input id="date-picker" type="date" />
+      <button onclick="addTodo()">Add Todo</button>
+    </div>
+    <!-- create an empty div that uses to contain and display new elements that were added to the to do list -->
+    <div id="todo-list"></div>
+    
+    <script>
+      // MVC(Model, View, Controller)
+
+      // Model
+
+      // Array todos is used to add new contents to the list in the form of object.
+      let todos = [];
+
+      // Save to local storage
+      const saveTodosToLocalStorage = () => {
+        localStorage.setItem('todos', JSON.stringify(todos));
+      };
+
+      // Create a todo when button "Add Todo" is clicked. create an unique id for the new content using time element. id is used to identify which line of content we are referring to.
+      const createTodo = (title, dueDate) => {
+        // Date().getTime() creates timestamps in milliseconds. Most likely duplicated id won't happen.
+        const id = '' + new Date().getTime();
+        // Add new content by pushing new contents to the array.
+        todos.push({
+          title: title,
+          dueDate: dueDate,
+          id: id,
+          isDone: false
+        });
+        saveTodosToLocalStorage(); 
+      };
+
+      // Check Box. Going through a for loop, targeting the todo's id that matches the one was clicked, and change parameter isDone to check box's status(boolean: either checked or unchecked).
+      const toggleCheckBox = (checked, todoId) => {
+        const todo = todos.find(todo => todo.id === todoId);
+        if (todo) {
+          todo.isDone = checked;
+          saveTodosToLocalStorage(); 
+        }
+      };
+
+      // Through a for loop, using the id that was passed from onEdit function to target which line of content need to be edited. If there is a match, set the matched todo's isEditing to true. 
+      const setEdit = idToUpdate => {
+        todos.forEach(todo => {
+          if(todo.id === idToUpdate) {
+            todo.isEditing = true;
+          }
+        });
+        saveTodosToLocalStorage();
+      };
+      
+      // Acquire the new content infomation from new inputs. Match the targeted id to the id in the todos array and update the information. Also, set the idEditing to false.
+      const setUpdate = idToUpdate => {
+        const textbox = document.getElementById('todo-title-update');
+        const title = textbox.value;
+        const datePicker = document.getElementById('date-picker-update');
+        const dueDate = datePicker.value;
+      
+        todos.forEach(todo => {
+          if(todo.id === idToUpdate){
+            todo.title = title;
+            todo.dueDate = dueDate;
+            todo.isEditing = false;
+          }
+        });
+        saveTodosToLocalStorage();
+      };
+
+      // Deletes a todo by filtering out the todo with the id provided from onDelete function
+      const removeTodo = idToDelete => {
+        todos = todos.filter(todo => todo.id !== idToDelete);
+        saveTodosToLocalStorage();
+      };
+
+
+      // View
+      const render = () => {
+        //reset our list. clear div "todo-list" and re-render everyting everytime we need to render
+        document.getElementById('todo-list').innerHTML = '';
+        //Using for loop generates every item in todos array
+        todos.forEach(todo => {
+          // create div element to contain and display todo item, content and due date. Items will be displayed after added.
+          const element = document.createElement('div');
+          element.className = 'inp';
+          element.innerText = todo.title + ' ' + todo.dueDate;
+
+          // create a check box before every element that is generated
+          const checkBox = document.createElement('input');
+          checkBox.type = 'checkbox';
+          // target which check box was clicked
+          checkBox.onchange = onCheck(checkBox, todo);
+          // onCheck function will return the boolean value of a check box, then pass that value to the checkBox.checked to see if its checked.
+          checkBox.checked = todo.isDone;
+          // If user clicked "edit" button, then reset the check box to be unchecked.
+          if(todo.isEditing === true) {
+            checkBox.checked = false;
+          }
+          element.prepend(checkBox);
+
+          // create "edit" button after div element to provide options of editing existing content
+          const editButton = document.createElement('button');
+          editButton.innerText = 'Edit';
+          editButton.style = 'margin-left: 12px';
+          editButton.onclick = onEdit(todo);
+          element.appendChild(editButton);
+
+          // isEditing is true means the user clicked "edit" button, then a new div element will be generated at the original location. The new div element contains inputs of content and due date followed by an "Update" button. If isEditing is false, means the user did not click edit button, then it will generate "delete" button after "edit" button.
+          if(todo.isEditing === true) {
+            element.innerHTML = '';
+            const updateInput = document.createElement('input');
+            updateInput.type = 'text';
+            updateInput.id = 'todo-title-update';
+            element.append(updateInput);
+
+            const updateDuedate = document.createElement('input');
+            updateDuedate.type = 'date';
+            updateDuedate.style = 'margin-left: 12px';
+            updateDuedate.id = 'date-picker-update';
+            element.append(updateDuedate);
+
+            const updateButton = document.createElement('button');
+            updateButton.innerText = 'Update';
+            updateButton.style = 'margin-left: 12px';
+            updateButton.onclick = onUpdate(todo);
+            element.append(updateButton);
+          } else {
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.style = 'margin-left: 12px';
+            deleteButton.onclick = onDelete(todo);
+            deleteButton.id = todo.id;
+            element.appendChild(deleteButton);
+          }
+
+          // insert new element
+          const todoList = document.getElementById('todo-list');
+          todoList.appendChild(element);
+      });
+      };
+
+      
+      // Controller
+
+      // When click button "Add Todo", acquire the content from content input and date input. Target different inputs with their IDs. Then use createTodo to add inputs. Render modified content.
+      const addTodo = () => {
+        const textbox = document.getElementById('todo-title');
+        const title = textbox.value;
+        const datePicker = document.getElementById('date-picker');
+        const dueDate = datePicker.value;     
+        createTodo(title, dueDate);
+        render();
+      };
+
+      // When click "Edit" button, pass the id of the content that was clicked to setEdit function, then re-render.
+      const onEdit = todoToEdit => {
+        return () => {
+          setEdit(todoToEdit.id);
+          render();
+        };
+      };
+
+      // When click "Update" button, pass the id of the content that was clicked to onUpdate function, then re-render.
+      const onUpdate = todoToUpdate => {
+        return () => {
+          setUpdate(todoToUpdate.id);
+          render();
+        };
+      };
+
+      // When click "Delete" button, pass the id of the content that was clicked to removeTodo function, then re-render.
+      const onDelete = todoToDelete => {
+        return () => {
+          removeTodo(todoToDelete.id);
+          render();
+        };
+      };
+
+      //When click the check box, pass check box checked status and the check box that was clicked to toggleCheckBox function, then re-render.
+      const onCheck = (checkBox, todoTocheck) => {
+        return () => {
+          toggleCheckBox(checkBox.checked, todoTocheck.id);
+          render();
+        };
+      };
+
+      // Retrieve todos from local storage
+      const savedTodos = localStorage.getItem('todos');
+      if (savedTodos) {
+        todos = JSON.parse(savedTodos);
+      }
+
+      // Render the to-do list
+      render();
+    </script>
+  </body>
+</html>

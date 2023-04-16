@@ -1,0 +1,69 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.inp {
+  margin: 20px 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.inp > input, .inp > button {
+  margin-right: 10px;
+}
+
+.inp > input[type="text"], .inp > input[type="date"] {
+  width: 300px;
+  padding: 10px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+}
+
+.inp > input[type="text"]:focus, .inp > input[type="date"]:focus {
+  outline: none;
+  border-bottom: 2px solid #00bcd4;
+}
+
+.inp > button {
+  padding: 10px;
+  background-color: #00bcd4;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.inp > button:hover {
+  background-color: #0097a7;
+}
+
+.inp > input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.inp > button.edit {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.inp > button.edit:hover {
+  background-color: #ff9800;
+}
+
+.inp > button.delete {
+  background-color: #f44336;
+  color: #fff;
+}
+
+.inp > button.delete:hover {
+  background-color: #e53935;
+}
